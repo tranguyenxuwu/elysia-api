@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model bo_sach {
+  ma_bo_sach   Int            @id @default(autoincrement())
+  ten_bo_sach  String         @db.Text
+  sach_bo_sach sach_bo_sach[]
+}
+
+model don_hang {
+  ma_don_hang        Int                 @id @default(autoincrement()) @db.UnsignedInt
+  ten_nguoi_nhan     String              @db.VarChar(255)
+  sdt_nguoi_nhan     String              @db.VarChar(255)
+  dia_chi_nguoi_nhan String              @db.VarChar(255)
+  don_hang_chi_tiet  don_hang_chi_tiet[]
+}
+
+model don_hang_chi_tiet {
+  ma_don_hang Int      @db.UnsignedInt
+  ma_sach     Int
+  so_luong    Int
+  gia_tien    Decimal  @db.Decimal(8, 2)
+  don_hang    don_hang @relation(fields: [ma_don_hang], references: [ma_don_hang], onDelete: NoAction, onUpdate: NoAction, map: "fk_don_hang_chi_tiet_don_hang")
+  sach        sach     @relation(fields: [ma_sach], references: [ma_sach], onDelete: NoAction, onUpdate: NoAction, map: "fk_don_hang_chi_tiet_sach")
+
+  @@id([ma_don_hang, ma_sach])
+  @@index([ma_sach], map: "fk_don_hang_chi_tiet_sach")
+}
+
+model kieu_sach {
+  ma_kieu_sach   Int              @id @default(autoincrement())
+  ten_kieu_sach  String           @db.TinyText
+  sach_kieu_sach sach_kieu_sach[]
+}
+
+model nha_xuat_ban {
+  ma_nha_xuat_ban  Int    @id @default(autoincrement())
+  ten_nha_xuat_ban String @db.VarChar(255)
+  sach             sach[]
+}
+
+model password_reset_tokens {
+  email      String    @id @db.VarChar(255)
+  token      String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+}
+
+model personal_access_tokens {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  tokenable_type String    @db.VarChar(255)
+  tokenable_id   BigInt    @db.UnsignedBigInt
+  name           String    @db.VarChar(255)
+  token          String    @db.Text
+  abilities      String?   @db.Text
+  last_used_at   DateTime? @db.Timestamp(0)
+  expires_at     DateTime? @db.Timestamp(0)
+  created_at     DateTime? @default(now()) @db.Timestamp(0)
+  updated_at     DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([tokenable_type, tokenable_id], map: "personal_access_tokens_tokenable_type_tokenable_id_index")
+}
+
+model sach {
+  ma_sach           Int                 @id @default(autoincrement())
+  tieu_de           String              @db.VarChar(255)
+  tong_so_trang     Int?
+  danh_gia          Decimal?            @db.Decimal(8, 2)
+  ngay_xuat_ban     DateTime?           @db.Date
+  ma_nha_xuat_ban   Int?
+  gia_tien          Decimal             @db.Decimal(8, 2)
+  so_tap            Float?              @db.Float
+  gioi_thieu        String              @db.MediumText
+  don_hang_chi_tiet don_hang_chi_tiet[]
+  nha_xuat_ban      nha_xuat_ban?       @relation(fields: [ma_nha_xuat_ban], references: [ma_nha_xuat_ban], onDelete: NoAction, onUpdate: NoAction, map: "fk_sach_nxb")
+  sach_bo_sach      sach_bo_sach[]
+  sach_kieu_sach    sach_kieu_sach[]
+  sach_tac_gia      sach_tac_gia[]
+  sach_the_loai     sach_the_loai[]
+
+  @@index([ma_nha_xuat_ban], map: "fk_sach_nxb")
+}
+
+model sach_bo_sach {
+  ma_sach    Int
+  ma_bo_sach Int
+  sach       sach    @relation(fields: [ma_sach], references: [ma_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_bo_sach_ibfk_1")
+  bo_sach    bo_sach @relation(fields: [ma_bo_sach], references: [ma_bo_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_bo_sach_ibfk_2")
+
+  @@id([ma_sach, ma_bo_sach])
+  @@index([ma_bo_sach], map: "ma_bo_sach")
+}
+
+model sach_kieu_sach {
+  ma_sach      Int
+  ma_kieu_sach Int
+  kieu_sach    kieu_sach @relation(fields: [ma_kieu_sach], references: [ma_kieu_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_kieu_sach_kieu_sach_ma_kieu_sach_fk")
+  sach         sach      @relation(fields: [ma_sach], references: [ma_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_kieu_sach_sach_ma_sach_fk")
+
+  @@id([ma_sach, ma_kieu_sach])
+  @@index([ma_kieu_sach], map: "sach_kieu_sach_kieu_sach_ma_kieu_sach_fk")
+}
+
+model sach_tac_gia {
+  ma_sach    Int
+  ma_tac_gia Int
+  sach       sach    @relation(fields: [ma_sach], references: [ma_sach], onDelete: NoAction, onUpdate: NoAction, map: "fk_sach_tac_gia_sach")
+  tac_gia    tac_gia @relation(fields: [ma_tac_gia], references: [ma_tac_gia], onDelete: NoAction, onUpdate: NoAction, map: "fk_sach_tac_gia_tac_gia")
+
+  @@id([ma_sach, ma_tac_gia])
+  @@index([ma_tac_gia], map: "fk_sach_tac_gia_tac_gia")
+}
+
+model sach_tacgia {
+  ma_sach    BigInt @db.UnsignedBigInt
+  ma_tac_gia BigInt @db.UnsignedBigInt
+
+  @@id([ma_sach, ma_tac_gia])
+}
+
+model sach_the_loai {
+  ma_sach     Int
+  ma_the_loai Int
+  sach        sach     @relation(fields: [ma_sach], references: [ma_sach], onDelete: NoAction, onUpdate: NoAction, map: "fk_sach_the_loai_sach")
+  the_loai    the_loai @relation(fields: [ma_the_loai], references: [ma_the_loai], onDelete: NoAction, onUpdate: NoAction, map: "fk_sach_the_loai_the_loai")
+
+  @@id([ma_sach, ma_the_loai])
+  @@index([ma_the_loai], map: "fk_sach_the_loai_the_loai")
+}
+
+model sessions {
+  id            String  @id @db.VarChar(255)
+  user_id       BigInt? @db.UnsignedBigInt
+  ip_address    String? @db.VarChar(45)
+  user_agent    String? @db.Text
+  payload       String  @db.LongText
+  last_activity Int
+
+  @@index([last_activity], map: "sessions_last_activity_index")
+  @@index([user_id], map: "sessions_user_id_index")
+}
+
+model tac_gia {
+  ma_tac_gia   Int            @id @default(autoincrement())
+  ten_tac_gia  String?        @db.VarChar(510)
+  sach_tac_gia sach_tac_gia[]
+}
+
+model the_loai {
+  ma_the_loai     Int             @id @default(autoincrement())
+  ten_the_loai    String          @db.VarChar(255)
+  ma_the_loai_cha Int?
+  sach_the_loai   sach_the_loai[]
+
+  @@index([ma_the_loai_cha], map: "fk_the_loai_cha")
+}
+
+model users {
+  id                BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name              String    @db.VarChar(255)
+  email             String    @unique(map: "users_email_unique") @db.VarChar(255)
+  email_verified_at DateTime? @db.Timestamp(0)
+  password          String    @db.VarChar(255)
+  remember_token    String?   @db.VarChar(100)
+  created_at        DateTime? @db.Timestamp(0)
+  updated_at        DateTime? @db.Timestamp(0)
+}

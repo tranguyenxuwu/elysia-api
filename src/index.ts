@@ -1,7 +1,11 @@
-import { Elysia } from "elysia";
+import { Elysia } from 'elysia'
+import { swagger } from '@elysiajs/swagger'
+import { bookController } from './elysiaController'
 
-const app = new Elysia().get("/", () => "Hello Elysia").listen(3000);
+// Create and start the application
+new Elysia()
+  .use(swagger())
+  .use(bookController)
+  .listen(3000)
 
-console.log(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
-);
+console.log('Server is running on http://localhost:3000')
