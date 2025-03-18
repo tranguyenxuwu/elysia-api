@@ -4,7 +4,7 @@ import { Elysia } from 'elysia'
 const prisma = new PrismaClient()
 
 // function to get book by id 
-export const bookController = new Elysia({ prefix: '/book' })
+export const elysiaQuery = new Elysia({ prefix: '/book' })
   .get('/id/:ma_sach', async ({ params: { ma_sach } }) => {
     try {
       // Parse and validate the book ID
@@ -91,5 +91,3 @@ export const bookController = new Elysia({ prefix: '/book' })
       };
     }
   })
-
-  
