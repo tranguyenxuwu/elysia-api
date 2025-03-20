@@ -7,12 +7,10 @@ const toDecimal = (value: string) => {
   try {
     return new Prisma.Decimal(value)
   } catch (error) {
-    console.error('Decimal conversion error:', error)
     throw new Error(`Invalid decimal format: ${value}`)
   }
 }
 
-// Schema definitions
 const basicBookSchema = t.Object({
   tieu_de: t.String(),
   gia_tien: t.String({ pattern: '^\\d+(\\.\\d{1,2})?$' }),
@@ -33,7 +31,6 @@ const completeBookSchema = t.Object({
 export const elysiaUPLOADER = new Elysia({ prefix: '/upload' })
   .post('/', async ({ body, set }) => {
     try {
-      console.log('Incoming basic book request:', body)
       const decimalPrice = toDecimal(body.gia_tien)
       
       const book = await prisma.sach.create({
@@ -44,42 +41,24 @@ export const elysiaUPLOADER = new Elysia({ prefix: '/upload' })
         }
       })
 
-      console.log('Created basic book:', book)
       set.status = 201
       return book
-
     } catch (error) {
-      console.error('\n--- BASIC BOOK ERROR ---')
-      console.error('Request body:', body)
-      if (error instanceof Error) {
-        console.error('Error:', error.message)
-        console.error('Stack:', error.stack)
-      } else {
-        console.error('Unknown error:', error)
-      }
-      console.error('-----------------------\n')
-
       set.status = 500
       return { 
         message: 'Internal server error',
         details: error instanceof Error ? error.message : String(error)
       }
     }
-  }, {
-    body: basicBookSchema
-  })
+  }, { body: basicBookSchema })
   .post('/book', async ({ body, set }) => {
     try {
-      console.log('Incoming complete book request:', body)
-
       if (body.ma_nha_xuat_ban) {
-        console.log('Checking publisher existence...')
         const publisher = await prisma.nha_xuat_ban.findUnique({
           where: { ma_nha_xuat_ban: body.ma_nha_xuat_ban }
         })
         
         if (!publisher) {
-          console.error('Publisher not found:', body.ma_nha_xuat_ban)
           set.status = 400
           return { message: 'Invalid publisher ID' }
         }
@@ -106,7 +85,6 @@ export const elysiaUPLOADER = new Elysia({ prefix: '/upload' })
           }
         }
       } catch (fieldError) {
-        console.error('Field processing error:', fieldError)
         set.status = 400
         return { 
           message: 'Invalid field format',
@@ -114,31 +92,12 @@ export const elysiaUPLOADER = new Elysia({ prefix: '/upload' })
         }
       }
 
-      console.log('Final book data:', bookData)
-      
-      const book = await prisma.sach.create({
-        data: bookData
-      })
-
-      console.log('Successfully created book:', book)
+      const book = await prisma.sach.create({ data: bookData })
       set.status = 201
       return book
 
     } catch (error) {
-      console.error('\n--- COMPLETE BOOK ERROR ---')
-      console.error('Request body:', body)
-      if (error instanceof Error) {
-        console.error('Error:', error.message)
-        console.error('Stack:', error.stack)
-      } else {
-        console.error('Unknown error:', error)
-      }
-      console.error('--------------------------\n')
-
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        console.error('Prisma error code:', error.code)
-        console.error('Meta:', error.meta)
-        
         switch (error.code) {
           case 'P2002':
             set.status = 409
@@ -158,6 +117,4 @@ export const elysiaUPLOADER = new Elysia({ prefix: '/upload' })
         details: error instanceof Error ? error.message : String(error)
       }
     }
-  }, {
-    body: completeBookSchema
-  })
+  }, { body: completeBookSchema })
