@@ -91,3 +91,51 @@ export const elysiaQuery = new Elysia({ prefix: '/book' })
       };
     }
   })
+
+  // SELECT 6 RANDOM BOOKS
+  .get('/randomStoreIndex', async () => {
+    try {
+      const books = await prisma.sach.findMany({
+        take: 10,
+        select: {
+          ma_sach: true,
+          tieu_de: true,
+          gia_tien: true,
+          so_tap: true,
+          gioi_thieu: true,
+        }
+      });
+
+      return books;
+    } catch (error) {
+      console.error('Error fetching books:', error);
+      return {
+        status: 500,
+        message: 'Internal server error'
+      };
+    }
+  })
+
+
+  // select all books
+  .get('/all', async () => {
+    try {
+      const books = await prisma.sach.findMany({
+        select: {
+          ma_sach: true,
+          tieu_de: true,
+          gia_tien: true,
+          so_tap: true,
+          gioi_thieu: true,
+        }
+      });
+
+      return books;
+    } catch (error) {
+      console.error('Error fetching books:', error);
+      return {
+        status: 500,
+        message: 'Internal server error'
+      };
+    }
+  })
