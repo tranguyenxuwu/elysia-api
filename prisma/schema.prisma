@@ -45,27 +45,6 @@ model nha_xuat_ban {
   sach             sach[]
 }
 
-model password_reset_tokens {
-  email      String    @id @db.VarChar(255)
-  token      String    @db.VarChar(255)
-  created_at DateTime? @db.Timestamp(0)
-}
-
-model personal_access_tokens {
-  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
-  tokenable_type String    @db.VarChar(255)
-  tokenable_id   BigInt    @db.UnsignedBigInt
-  name           String    @db.VarChar(255)
-  token          String    @db.Text
-  abilities      String?   @db.Text
-  last_used_at   DateTime? @db.Timestamp(0)
-  expires_at     DateTime? @db.Timestamp(0)
-  created_at     DateTime? @default(now()) @db.Timestamp(0)
-  updated_at     DateTime? @default(now()) @db.Timestamp(0)
-
-  @@index([tokenable_type, tokenable_id], map: "personal_access_tokens_tokenable_type_tokenable_id_index")
-}
-
 model sach {
   ma_sach           Int                 @id @default(autoincrement())
   tieu_de           String              @db.VarChar(255)
@@ -78,6 +57,7 @@ model sach {
   gioi_thieu        String              @db.MediumText
   don_hang_chi_tiet don_hang_chi_tiet[]
   nha_xuat_ban      nha_xuat_ban?       @relation(fields: [ma_nha_xuat_ban], references: [ma_nha_xuat_ban], onDelete: NoAction, onUpdate: NoAction, map: "fk_sach_nxb")
+  sach_bia_sach     sach_bia_sach?
   sach_bo_sach      sach_bo_sach[]
   sach_kieu_sach    sach_kieu_sach[]
   sach_tac_gia      sach_tac_gia[]
@@ -114,13 +94,6 @@ model sach_tac_gia {
 
   @@id([ma_sach, ma_tac_gia])
   @@index([ma_tac_gia], map: "fk_sach_tac_gia_tac_gia")
-}
-
-model sach_tacgia {
-  ma_sach    BigInt @db.UnsignedBigInt
-  ma_tac_gia BigInt @db.UnsignedBigInt
-
-  @@id([ma_sach, ma_tac_gia])
 }
 
 model sach_the_loai {
@@ -169,4 +142,13 @@ model users {
   remember_token    String?   @db.VarChar(100)
   created_at        DateTime? @db.Timestamp(0)
   updated_at        DateTime? @db.Timestamp(0)
+}
+
+model sach_bia_sach {
+  ma_sach       Int     @id
+  url_bia_chinh String? @db.VarChar(100)
+  url_bia_cover String? @db.VarChar(100)
+  url_bia_phu   String? @db.VarChar(100)
+  url_bookmark  String? @db.VarChar(100)
+  sach          sach    @relation(fields: [ma_sach], references: [ma_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_bia_sach_sach_ma_sach_fk")
 }

@@ -38,6 +38,11 @@ const bookSchema = t.Object({
   ngay_xuat_ban: t.Optional(t.String({ format: "date" })),
   ma_nha_xuat_ban: t.Optional(t.Number()),
   so_tap: t.Optional(t.Number()),
+  // Additional fields for book cover images
+  url_bia_chinh: t.Optional(t.String()),
+  url_bia_cover: t.Optional(t.String()),
+  url_bia_phu: t.Optional(t.String()),
+  url_bookmark: t.Optional(t.String()),
 });
 
 const presignedSchema = t.Object({
@@ -57,68 +62,102 @@ export const elysiaUPLOADER = new Elysia({ prefix: "/upload" })
     }
   })
   
-    .post(
-      "/book",
-      async ({ body, set }) => {
-        try {
-          if (body.ma_nha_xuat_ban) {
-            const publisher = await prisma.nha_xuat_ban.findUnique({
-              where: { ma_nha_xuat_ban: body.ma_nha_xuat_ban },
-            });
-            if (!publisher) {
-              set.status = 400;
-              return { message: "Invalid publisher ID" };
-            }
+  .post(
+    "/book",
+    async ({ body, set }) => {
+      try {
+        if (body.ma_nha_xuat_ban) {
+          const publisher = await prisma.nha_xuat_ban.findUnique({
+            where: { ma_nha_xuat_ban: body.ma_nha_xuat_ban },
+          });
+          if (!publisher) {
+            set.status = 400;
+            return { message: "Invalid publisher ID" };
           }
-          // Create a new book record
-          const bookData: Prisma.sachCreateInput = {
-            tieu_de: body.tieu_de,
-            gia_tien: toDecimal(body.gia_tien),
-            gioi_thieu: body.gioi_thieu,
-            so_tap: body.so_tap,
-            tong_so_trang: body.tong_so_trang,
-            danh_gia: body.danh_gia ? toDecimal(body.danh_gia) : undefined,
-            ngay_xuat_ban: body.ngay_xuat_ban
-              ? new Date(body.ngay_xuat_ban)
-              : undefined,
-            ...(body.ma_nha_xuat_ban && {
-              nha_xuat_ban: {
-                connect: { ma_nha_xuat_ban: body.ma_nha_xuat_ban },
-              },
-            }),
-          };
-          
-          // Insert the book record into the database
-          const book = await prisma.sach.create({ data: bookData });
-          set.status = 201;
-          return book;
-        } catch (error) {
-          if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            switch (error.code) {
-              case "P2002": // Unique constraint violation
-                set.status = 409;
-                return { message: "Duplicate entry", details: error.meta };
-              case "P2003": // Foreign key constraint violation
-                set.status = 400;
-                return {
-                  message: "Foreign key constraint failed",
-                  details: error.meta,
-                };
-              default:
-                set.status = 500;
-                return { message: "Database error", details: error.meta };
-            }
-          }
-          // Handle other errors
-          set.status = 500;
-          return {
-            message: "Internal server error",
-            details: error instanceof Error ? error.message : String(error),
-          };
         }
-      },
-      { body: bookSchema } // Validate request body
-    )
+        // Create a new book record
+        const bookData: Prisma.sachCreateInput = {
+          tieu_de: body.tieu_de,
+          gia_tien: toDecimal(body.gia_tien),
+          gioi_thieu: body.gioi_thieu,
+          so_tap: body.so_tap,
+          tong_so_trang: body.tong_so_trang,
+          danh_gia: body.danh_gia ? toDecimal(body.danh_gia) : undefined,
+          ngay_xuat_ban: body.ngay_xuat_ban
+            ? new Date(body.ngay_xuat_ban)
+            : undefined,
+          ...(body.ma_nha_xuat_ban && {
+            nha_xuat_ban: {
+              connect: { ma_nha_xuat_ban: body.ma_nha_xuat_ban },
+            },
+          }),
+        };
+          
+        // Prepare image URLs (omit undefined values)
+        const imageUrls = {
+          url_bia_chinh: body.url_bia_chinh,
+          url_bia_cover: body.url_bia_cover,
+          url_bia_phu: body.url_bia_phu,
+          url_bookmark: body.url_bookmark,
+        };
+
+        // Use transaction to ensure book and images are created atomically
+        const book = await prisma.$transaction(async (tx) => {
+          // Create the book record
+          const createdBook = await tx.sach.create({ data: bookData });
+          
+          // Use upsert instead of create to handle both new and existing records
+          if (Object.values(imageUrls).some(v => v !== undefined)) {
+            await tx.sach_bia_sach.upsert({
+              where: { ma_sach: createdBook.ma_sach },
+              update: imageUrls,
+              create: {
+                ma_sach: createdBook.ma_sach,
+                ...imageUrls,
+              },
+            });
+          }
+          
+          return createdBook;
+        });
+        
+        // Fetch the book with its cover information
+        const bookWithCover = await prisma.sach.findUnique({
+          where: { ma_sach: book.ma_sach },
+          include: {
+            sach_bia_sach: true, // Include data from sach_bia_sach table
+          },
+        });
+        
+        set.status = 201;
+        return bookWithCover; // Return the complete data
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          switch (error.code) {
+            case "P2002": // Unique constraint violation
+              set.status = 409;
+              return { message: "Duplicate entry", details: error.meta };
+            case "P2003": // Foreign key constraint violation
+              set.status = 400;
+              return {
+                message: "Foreign key constraint failed",
+                details: error.meta,
+              };
+            default:
+              set.status = 500;
+              return { message: "Database error", details: error.meta };
+          }
+        }
+        // Handle other errors
+        set.status = 500;
+        return {
+          message: "Internal server error",
+          details: error instanceof Error ? error.message : String(error),
+        };
+      }
+    },
+    { body: bookSchema } // Validate request body
+  )
 
   // Presigned URL endpoint
   .post("/presigned", async ({ body, set }) => {
