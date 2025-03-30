@@ -8,9 +8,9 @@ datasource db {
 }
 
 model bo_sach {
-  ma_bo_sach   Int            @id @default(autoincrement())
-  ten_bo_sach  String         @db.Text
-  sach_bo_sach sach_bo_sach[]
+  ma_bo_sach  Int    @id @default(autoincrement())
+  ten_bo_sach String @db.Text
+  sach        sach[]
 }
 
 model don_hang {
@@ -34,9 +34,9 @@ model don_hang_chi_tiet {
 }
 
 model kieu_sach {
-  ma_kieu_sach   Int              @id @default(autoincrement())
-  ten_kieu_sach  String           @db.TinyText
-  sach_kieu_sach sach_kieu_sach[]
+  ma_kieu_sach  Int    @id @default(autoincrement())
+  ten_kieu_sach String @db.TinyText
+  sach          sach[]
 }
 
 model nha_xuat_ban {
@@ -55,100 +55,33 @@ model sach {
   gia_tien          Decimal             @db.Decimal(8, 2)
   so_tap            Float?              @db.Float
   gioi_thieu        String              @db.MediumText
+  ma_bo_sach        Int?
+  ma_tac_gia        Int?
+  ma_kieu_sach      Int?
   don_hang_chi_tiet don_hang_chi_tiet[]
   nha_xuat_ban      nha_xuat_ban?       @relation(fields: [ma_nha_xuat_ban], references: [ma_nha_xuat_ban], onDelete: NoAction, onUpdate: NoAction, map: "fk_sach_nxb")
+  bo_sach           bo_sach?            @relation(fields: [ma_bo_sach], references: [ma_bo_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_bo_sach_ma_bo_sach_fk")
+  kieu_sach         kieu_sach?          @relation(fields: [ma_kieu_sach], references: [ma_kieu_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_kieu_sach_ma_kieu_sach_fk")
+  tac_gia           tac_gia?            @relation(fields: [ma_tac_gia], references: [ma_tac_gia], onDelete: NoAction, onUpdate: NoAction, map: "sach_tac_gia_ma_tac_gia_fk")
   sach_bia_sach     sach_bia_sach?
-  sach_bo_sach      sach_bo_sach[]
-  sach_kieu_sach    sach_kieu_sach[]
-  sach_tac_gia      sach_tac_gia[]
-  sach_the_loai     sach_the_loai[]
 
   @@index([ma_nha_xuat_ban], map: "fk_sach_nxb")
-}
-
-model sach_bo_sach {
-  ma_sach    Int
-  ma_bo_sach Int
-  sach       sach    @relation(fields: [ma_sach], references: [ma_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_bo_sach_ibfk_1")
-  bo_sach    bo_sach @relation(fields: [ma_bo_sach], references: [ma_bo_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_bo_sach_ibfk_2")
-
-  @@id([ma_sach, ma_bo_sach])
-  @@index([ma_bo_sach], map: "ma_bo_sach")
-}
-
-model sach_kieu_sach {
-  ma_sach      Int
-  ma_kieu_sach Int
-  kieu_sach    kieu_sach @relation(fields: [ma_kieu_sach], references: [ma_kieu_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_kieu_sach_kieu_sach_ma_kieu_sach_fk")
-  sach         sach      @relation(fields: [ma_sach], references: [ma_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_kieu_sach_sach_ma_sach_fk")
-
-  @@id([ma_sach, ma_kieu_sach])
-  @@index([ma_kieu_sach], map: "sach_kieu_sach_kieu_sach_ma_kieu_sach_fk")
-}
-
-model sach_tac_gia {
-  ma_sach    Int
-  ma_tac_gia Int
-  sach       sach    @relation(fields: [ma_sach], references: [ma_sach], onDelete: NoAction, onUpdate: NoAction, map: "fk_sach_tac_gia_sach")
-  tac_gia    tac_gia @relation(fields: [ma_tac_gia], references: [ma_tac_gia], onDelete: NoAction, onUpdate: NoAction, map: "fk_sach_tac_gia_tac_gia")
-
-  @@id([ma_sach, ma_tac_gia])
-  @@index([ma_tac_gia], map: "fk_sach_tac_gia_tac_gia")
-}
-
-model sach_the_loai {
-  ma_sach     Int
-  ma_the_loai Int
-  sach        sach     @relation(fields: [ma_sach], references: [ma_sach], onDelete: NoAction, onUpdate: NoAction, map: "fk_sach_the_loai_sach")
-  the_loai    the_loai @relation(fields: [ma_the_loai], references: [ma_the_loai], onDelete: NoAction, onUpdate: NoAction, map: "fk_sach_the_loai_the_loai")
-
-  @@id([ma_sach, ma_the_loai])
-  @@index([ma_the_loai], map: "fk_sach_the_loai_the_loai")
-}
-
-model sessions {
-  id            String  @id @db.VarChar(255)
-  user_id       BigInt? @db.UnsignedBigInt
-  ip_address    String? @db.VarChar(45)
-  user_agent    String? @db.Text
-  payload       String  @db.LongText
-  last_activity Int
-
-  @@index([last_activity], map: "sessions_last_activity_index")
-  @@index([user_id], map: "sessions_user_id_index")
+  @@index([ma_bo_sach], map: "sach_bo_sach_ma_bo_sach_fk")
+  @@index([ma_kieu_sach], map: "sach_kieu_sach_ma_kieu_sach_fk")
+  @@index([ma_tac_gia], map: "sach_tac_gia_ma_tac_gia_fk")
 }
 
 model tac_gia {
-  ma_tac_gia   Int            @id @default(autoincrement())
-  ten_tac_gia  String?        @db.VarChar(510)
-  sach_tac_gia sach_tac_gia[]
-}
-
-model the_loai {
-  ma_the_loai     Int             @id @default(autoincrement())
-  ten_the_loai    String          @db.VarChar(255)
-  ma_the_loai_cha Int?
-  sach_the_loai   sach_the_loai[]
-
-  @@index([ma_the_loai_cha], map: "fk_the_loai_cha")
-}
-
-model users {
-  id                BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
-  name              String    @db.VarChar(255)
-  email             String    @unique(map: "users_email_unique") @db.VarChar(255)
-  email_verified_at DateTime? @db.Timestamp(0)
-  password          String    @db.VarChar(255)
-  remember_token    String?   @db.VarChar(100)
-  created_at        DateTime? @db.Timestamp(0)
-  updated_at        DateTime? @db.Timestamp(0)
+  ma_tac_gia  Int     @id @default(autoincrement())
+  ten_tac_gia String? @db.VarChar(510)
+  sach        sach[]
 }
 
 model sach_bia_sach {
   ma_sach       Int     @id
-  url_bia_chinh String? @db.VarChar(100)
-  url_bia_cover String? @db.VarChar(100)
-  url_bia_phu   String? @db.VarChar(100)
-  url_bookmark  String? @db.VarChar(100)
+  url_bia_chinh String? @db.VarChar(2083)
+  url_bia_cover String? @db.VarChar(2083)
+  url_bia_phu   String? @db.VarChar(2083)
+  url_bookmark  String? @db.VarChar(2083)
   sach          sach    @relation(fields: [ma_sach], references: [ma_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_bia_sach_sach_ma_sach_fk")
 }

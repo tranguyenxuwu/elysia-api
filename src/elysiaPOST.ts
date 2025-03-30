@@ -37,6 +37,9 @@ const bookSchema = t.Object({
   danh_gia: t.Optional(t.String({ pattern: "^\\d+(\\.\\d{1,2})?$" })),
   ngay_xuat_ban: t.Optional(t.String({ format: "date" })),
   ma_nha_xuat_ban: t.Optional(t.Number()),
+  ma_bo_sach: t.Optional(t.Number()),
+  ma_tac_gia: t.Optional(t.Number()),
+  ma_kieu_sach: t.Optional(t.Number()),
   so_tap: t.Optional(t.Number()),
   // Additional fields for book cover images
   url_bia_chinh: t.Optional(t.String()),
@@ -66,6 +69,7 @@ export const elysiaUPLOADER = new Elysia({ prefix: "/upload" })
     "/book",
     async ({ body, set }) => {
       try {
+        // Validate publisher if provided
         if (body.ma_nha_xuat_ban) {
           const publisher = await prisma.nha_xuat_ban.findUnique({
             where: { ma_nha_xuat_ban: body.ma_nha_xuat_ban },
@@ -75,6 +79,40 @@ export const elysiaUPLOADER = new Elysia({ prefix: "/upload" })
             return { message: "Invalid publisher ID" };
           }
         }
+
+        // Validate book series if provided
+        if (body.ma_bo_sach) {
+          const bookSeries = await prisma.bo_sach.findUnique({
+            where: { ma_bo_sach: body.ma_bo_sach },
+          });
+          if (!bookSeries) {
+            set.status = 400;
+            return { message: "Invalid book series ID" };
+          }
+        }
+
+        // Validate author if provided
+        if (body.ma_tac_gia) {
+          const author = await prisma.tac_gia.findUnique({
+            where: { ma_tac_gia: body.ma_tac_gia },
+          });
+          if (!author) {
+            set.status = 400;
+            return { message: "Invalid author ID" };
+          }
+        }
+
+        // Validate book type if provided
+        if (body.ma_kieu_sach) {
+          const bookType = await prisma.kieu_sach.findUnique({
+            where: { ma_kieu_sach: body.ma_kieu_sach },
+          });
+          if (!bookType) {
+            set.status = 400;
+            return { message: "Invalid book type ID" };
+          }
+        }
+
         // Create a new book record
         const bookData: Prisma.sachCreateInput = {
           tieu_de: body.tieu_de,
@@ -89,6 +127,21 @@ export const elysiaUPLOADER = new Elysia({ prefix: "/upload" })
           ...(body.ma_nha_xuat_ban && {
             nha_xuat_ban: {
               connect: { ma_nha_xuat_ban: body.ma_nha_xuat_ban },
+            },
+          }),
+          ...(body.ma_bo_sach && {
+            bo_sach: {
+              connect: { ma_bo_sach: body.ma_bo_sach },
+            },
+          }),
+          ...(body.ma_tac_gia && {
+            tac_gia: {
+              connect: { ma_tac_gia: body.ma_tac_gia },
+            },
+          }),
+          ...(body.ma_kieu_sach && {
+            kieu_sach: {
+              connect: { ma_kieu_sach: body.ma_kieu_sach },
             },
           }),
         };
@@ -197,6 +250,123 @@ export const elysiaUPLOADER = new Elysia({ prefix: "/upload" })
 
   // CORS preflight
   .options("/presigned", ({ set }) => {
+    set.status = 204;
+    return "";
+  })
+
+  // create new author
+  .post('/author', async ({ body, set }) => {
+    try {
+      const author = await prisma.tac_gia.create({
+        data: {
+          ten_tac_gia: body.ten_tac_gia
+        }
+      });
+      
+      set.status = 201;
+      return author;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        switch (error.code) {
+          case "P2002": // Unique constraint violation
+            set.status = 409;
+            return { message: "Duplicate author entry", details: error.meta };
+          default:
+            set.status = 500;
+            return { message: "Database error", details: error.meta };
+        }
+      }
+      // Handle other errors
+      set.status = 500;
+      return {
+        message: "Internal server error",
+        details: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }, { body: t.Object({
+    ten_tac_gia: t.String()
+  })})
+  
+  // CORS preflight for author endpoint
+  .options("/author", ({ set }) => {
+    set.status = 204;
+    return "";
+  })
+  
+  // create new book series
+  .post('/series', async ({ body, set }) => {
+    try {
+      const bookSeries = await prisma.bo_sach.create({
+        data: {
+          ten_bo_sach: body.ten_bo_sach
+        }
+      });
+      
+      set.status = 201;
+      return bookSeries;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        switch (error.code) {
+          case "P2002": // Unique constraint violation
+            set.status = 409;
+            return { message: "Duplicate series entry", details: error.meta };
+          default:
+            set.status = 500;
+            return { message: "Database error", details: error.meta };
+        }
+      }
+      // Handle other errors
+      set.status = 500;
+      return {
+        message: "Internal server error",
+        details: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }, { body: t.Object({
+    ten_bo_sach: t.String()
+  })})
+  
+  // CORS preflight for series endpoint
+  .options("/series", ({ set }) => {
+    set.status = 204;
+    return "";
+  })
+  
+  // create new publisher
+  .post('/publisher', async ({ body, set }) => {
+    try {
+      const publisher = await prisma.nha_xuat_ban.create({
+        data: {
+          ten_nha_xuat_ban: body.ten_nha_xuat_ban
+        }
+      });
+      
+      set.status = 201;
+      return publisher;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        switch (error.code) {
+          case "P2002": // Unique constraint violation
+            set.status = 409;
+            return { message: "Duplicate publisher entry", details: error.meta };
+          default:
+            set.status = 500;
+            return { message: "Database error", details: error.meta };
+        }
+      }
+      // Handle other errors
+      set.status = 500;
+      return {
+        message: "Internal server error",
+        details: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }, { body: t.Object({
+    ten_nha_xuat_ban: t.String()
+  })})
+  
+  // CORS preflight for publisher endpoint
+  .options("/publisher", ({ set }) => {
     set.status = 204;
     return "";
   });
