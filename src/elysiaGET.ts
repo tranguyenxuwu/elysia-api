@@ -234,7 +234,7 @@ export const elysiaQuery = new Elysia({ prefix: "/book" })
   })
 
   // query all books in the same series
-  .get("/series/:ma_bo_sach", async ({ params: { ma_bo_sach }, set }) => {
+  .get("/in-series/:ma_bo_sach", async ({ params: { ma_bo_sach }, set }) => {
     try {
       const series = await prisma.sach.findMany({
         where: { ma_bo_sach: parseInt(ma_bo_sach) },
@@ -251,6 +251,26 @@ export const elysiaQuery = new Elysia({ prefix: "/book" })
         ...book,
         sach_bia_sach: book.sach_bia_sach || null,
       }));
+    } catch (error) {
+      console.error("Error fetching series:", error);
+      set.status = 500;
+      return {
+        message: "Internal server error"
+      };
+    }
+  })
+
+  // query all series
+  .get("/series", async ({ set }) => {
+    try {
+      const series = await prisma.bo_sach.findMany({
+        select: {
+          ma_bo_sach: true,
+          ten_bo_sach: true,
+        },
+      });
+
+      return series;
     } catch (error) {
       console.error("Error fetching series:", error);
       set.status = 500;
