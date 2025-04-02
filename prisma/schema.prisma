@@ -14,11 +14,14 @@ model bo_sach {
 }
 
 model don_hang {
-  ma_don_hang        Int                 @id @default(autoincrement()) @db.UnsignedInt
-  ten_nguoi_nhan     String              @db.VarChar(255)
-  sdt_nguoi_nhan     String              @db.VarChar(255)
-  dia_chi_nguoi_nhan String              @db.VarChar(255)
-  don_hang_chi_tiet  don_hang_chi_tiet[]
+  ma_don_hang          Int                  @id @default(autoincrement()) @db.UnsignedInt
+  ma_khach_hang        Int
+  created_at           DateTime?            @default(now()) @db.Timestamp(0)
+  updated_at           DateTime?            @default(now()) @db.Timestamp(0)
+  thong_tin_khach_hang thong_tin_khach_hang @relation(fields: [ma_khach_hang], references: [ma_khach_hang], onDelete: NoAction, onUpdate: NoAction, map: "don_hang_thong_tin_khach_hang_ma_khach_hang_fk")
+  don_hang_chi_tiet    don_hang_chi_tiet[]
+
+  @@index([ma_khach_hang], map: "don_hang_thong_tin_khach_hang_ma_khach_hang_fk")
 }
 
 model don_hang_chi_tiet {
@@ -84,4 +87,14 @@ model sach_bia_sach {
   url_bia_phu   String? @db.VarChar(2083)
   url_bookmark  String? @db.VarChar(2083)
   sach          sach    @relation(fields: [ma_sach], references: [ma_sach], onDelete: NoAction, onUpdate: NoAction, map: "sach_bia_sach_sach_ma_sach_fk")
+}
+
+model thong_tin_khach_hang {
+  ma_khach_hang  Int        @id @default(autoincrement())
+  ten_khach_hang String?    @db.VarChar(520)
+  phone          String     @db.VarChar(10)
+  email          String?    @db.VarChar(100)
+  dia_chi        String     @db.VarChar(2083)
+  so_nha         String     @db.VarChar(520)
+  don_hang       don_hang[]
 }
