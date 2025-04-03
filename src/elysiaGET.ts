@@ -25,7 +25,7 @@ export const elysiaQuery = new Elysia({ prefix: "/book" })
           },
           bo_sach: {
             // Include thông tin bộ sách
-            select: { ten_bo_sach: true },
+            select: { ma_bo_sach: true, ten_bo_sach: true },
           },
           kieu_sach: {
             // Include thông tin kiểu sách
@@ -129,6 +129,7 @@ export const elysiaQuery = new Elysia({ prefix: "/book" })
           so_tap: true,
           gioi_thieu: true,
           sach_bia_sach: true,
+          kieu_sach: true,
         },
       });
 
