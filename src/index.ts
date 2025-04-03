@@ -6,15 +6,12 @@ import { elysiaUPLOADER } from './elysiaPOST'
 import { bookDeleteRoutes } from './elysiaDEL'
 import { elysiaORDER } from './elysiaORDER'
 
-// Định nghĩa danh sách Origin hợp lệ
-const allowedOrigins = ["https://bookstore-elysia.web.app"];
+// Comment out or remove the allowedOrigins list as it's no longer needed
+// const allowedOrigins = ["https://bookstore-elysia.web.app"];
 
 new Elysia()
   .use(cors({
-      origin: (ctx) => {
-        const requestOrigin = ctx.headers.get("Origin");
-        return requestOrigin !== null && allowedOrigins.includes(requestOrigin);
-      },
+    origin: true, // Allow requests from any origin
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type"]
