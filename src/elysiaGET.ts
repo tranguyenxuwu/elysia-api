@@ -245,6 +245,7 @@ export const elysiaQuery = new Elysia({ prefix: "/book" })
           gia_tien: true,
           so_tap: true,
           sach_bia_sach: true,
+          kieu_sach: true,
         },
       });
 
