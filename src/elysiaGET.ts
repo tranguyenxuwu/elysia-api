@@ -280,3 +280,110 @@ export const elysiaQuery = new Elysia({ prefix: "/book" })
     }
   })
 
+  // function to get all light novels
+  .get("/light-novels", async ({ set }) => {
+    try {
+      const lightNovels = await prisma.sach.findMany({
+        where: { ma_kieu_sach: 1 },
+        select: {
+          ma_sach: true,
+          tieu_de: true,
+          gia_tien: true,
+          so_tap: true,
+          sach_bia_sach: true,
+        },
+      });
+
+      return lightNovels.map((book) => ({
+        ...book,
+        sach_bia_sach: book.sach_bia_sach || null,
+      }));
+    } catch (error) {
+      console.error("Error fetching light novels:", error);
+      set.status = 500;
+      return {
+        message: "Internal server error"
+      };
+    }
+  })
+  // function to get all manga
+  .get("/manga", async ({ set }) => {
+    try {
+      const manga = await prisma.sach.findMany({
+        where: { ma_kieu_sach: 2 },
+        select: {
+          ma_sach: true,
+          tieu_de: true,
+          gia_tien: true,
+          so_tap: true,
+          sach_bia_sach: true,
+        },
+      });
+
+      return manga.map((book) => ({
+        ...book,
+        sach_bia_sach: book.sach_bia_sach || null,
+      }));
+    } catch (error) {
+      console.error("Error fetching manga:", error);
+      set.status = 500;
+      return {
+        message: "Internal server error"
+      };
+    }
+  })
+
+  //function to get all artbooks
+  .get("/artbooks", async ({ set }) => {
+    try {
+      const artbooks = await prisma.sach.findMany({
+        where: { ma_kieu_sach: 3 },
+        select: {
+          ma_sach: true,
+          tieu_de: true,
+          gia_tien: true,
+          so_tap: true,
+          sach_bia_sach: true,
+        },
+      });
+
+      return artbooks.map((book) => ({
+        ...book,
+        sach_bia_sach: book.sach_bia_sach || null,
+      }));
+    } catch (error) {
+      console.error("Error fetching artbooks:", error);
+      set.status = 500;
+      return {
+        message: "Internal server error"
+      };
+    }
+  })
+
+    // function to get all ref books
+  .get("/ref-books", async ({ set }) => {
+    try {
+      const refBooks = await prisma.sach.findMany({
+        where: { ma_kieu_sach: 4 },
+        select: {
+          ma_sach: true,
+          tieu_de: true,
+          gia_tien: true,
+          so_tap: true,
+          sach_bia_sach: true,
+        },
+      });
+
+      return refBooks.map((book) => ({
+        ...book,
+        sach_bia_sach: book.sach_bia_sach || null,
+      }));
+    } catch (error) {
+      console.error("Error fetching ref books:", error);
+      set.status = 500;
+      return {
+        message: "Internal server error"
+      };
+    }
+  })  
+
