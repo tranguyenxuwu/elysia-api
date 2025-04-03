@@ -54,16 +54,6 @@ const presignedSchema = t.Object({
 });
 
 export const elysiaUPLOADER = new Elysia({ prefix: "/upload" })
-  // CORS headers middleware
-  .onAfterHandle(({ set }) => {
-    set.headers = {
-      "Access-Control-Allow-Origin": process.env.NODE_ENV === "production" 
-        ? "https://bookstore-elysia.web.app" 
-        : "http://127.0.0.1:5501",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
-    }
-  })
   
   .post(
     "/book",
